@@ -55,14 +55,41 @@ The MicroAgentMetadata class defines the following fields:
 
 ### Task Input Schema
 
-For task microagents, input parameters can be defined using the TaskInput schema:
+For task microagents, input parameters are defined in the frontmatter using a YAML schema. Here's an example:
 
-```python
-class TaskInput:
-    name: str          # Name of the input parameter
-    description: str   # Description of what the parameter does
-    required: bool     # Whether the parameter is required (defaults to True)
+```yaml
+---
+name: update_pr_description
+type: task
+version: 1.0.0
+agent: CodeActAgent
+inputs:
+  - name: PR_URL                    # Name of the parameter
+    description: URL of the pull request  # Description for users
+    type: string                    # Parameter type
+    required: true                  # Whether it's required
+    validation:                     # Optional validation rules
+      pattern: ^https://github.com/.+/.+/pull/[0-9]+$
+  - name: BRANCH_NAME
+    description: Branch name corresponds to the pull request
+    type: string
+    required: true
+---
 ```
+
+The schema supports:
+- `name`: Parameter identifier
+- `description`: Human-readable description
+- `type`: Data type (e.g., string)
+- `required`: Whether the parameter is mandatory (defaults to true)
+- `validation`: Optional validation rules (e.g., regex patterns)
+
+OpenHands includes several task agents for common operations:
+- `update_pr_description.md`: Updates PR descriptions
+- `address_pr_comments.md`: Handles PR comment responses
+- `get_test_to_pass.md`: Helps fix failing tests
+- `update_test_for_new_implementation.md`: Updates tests for new code
+- `add_openhands_repo_instruction.md`: Adds repository instructions
 
 ## Examples
 
