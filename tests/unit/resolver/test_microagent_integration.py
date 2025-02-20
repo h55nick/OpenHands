@@ -16,7 +16,9 @@ name: flarglebargle
 type: knowledge
 version: 1.0.0
 agent: CodeActAgent
-triggers: ["flarglebargle", "bargling"]
+triggers:
+- flarglebargle
+- bargling
 ---
 When discussing flarglebargle, remember:
 - It's a critical component for widget optimization
@@ -88,7 +90,9 @@ name: performance
 type: knowledge
 version: 1.0.0
 agent: CodeActAgent
-triggers: ["performance", "optimization"]
+triggers:
+- performance
+- optimization
 ---
 When reviewing performance-related changes:
 - Profile before optimizing
