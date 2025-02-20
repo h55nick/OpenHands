@@ -3,7 +3,7 @@ from typing import Any
 import requests
 
 from openhands.core.logger import openhands_logger as logger
-from openhands.microagent.types import MicroAgentType
+from openhands.microagent.microagent import KnowledgeMicroAgent
 from openhands.resolver.interfaces.issue import (
     Issue,
     IssueHandlerInterface,
@@ -310,11 +310,9 @@ class GithubIssueHandler(IssueHandlerInterface):
         from openhands.agenthub.micro.registry import all_microagents
 
         for agent in all_microagents.values():
-            if agent.type == MicroAgentType.KNOWLEDGE and agent.triggers:
-                for trigger in agent.triggers:
-                    if trigger.lower() in content.lower():
-                        contexts.append(agent.content)
-                        break
+            if isinstance(agent, KnowledgeMicroAgent):
+                if agent.match_trigger(content):
+                    contexts.append(agent.content)
 
         return contexts
 
