@@ -287,30 +287,31 @@ class GithubIssueHandler(IssueHandlerInterface):
         thread_comments: list[str] | None,
     ) -> list[str]:
         """Get context from external issues and microagents.
-        
+
         This method:
         1. Gets context from referenced issues
         2. Checks issue content against microagent triggers
         3. Includes relevant microagent knowledge
         """
         contexts = []
-        
+
         # Get all content to check for triggers
-        content = [issue_body]
+        content_parts = [issue_body]
         if review_comments:
-            content.extend(review_comments)
+            content_parts.extend(review_comments)
         if thread_comments:
-            content.extend(thread_comments)
+            content_parts.extend(thread_comments)
         if review_threads:
-            content.extend(thread.comment for thread in review_threads)
-        content = " ".join(content)
-        
+            content_parts.extend(thread.comment for thread in review_threads)
+        content = ' '.join(content_parts)
+
         # Add knowledge from microagents that have matching triggers
         from openhands.microagent.registry import knowledge_agents
+
         for agent in knowledge_agents.values():
             if agent.match_trigger(content):
                 contexts.append(agent.content)
-        
+
         return contexts
 
 

@@ -5,11 +5,19 @@ from unittest import mock
 import pytest
 
 from openhands.microagent.microagent import BaseMicroAgent
+from openhands.resolver.interfaces.github import GithubIssueHandler
 from openhands.resolver.interfaces.issue import Issue, ReviewThread
 
 
 def test_resolver_uses_knowledge_microagents():
     """Test that resolver picks up relevant knowledge microagents based on triggers."""
+    # Create a test resolver
+    resolver = GithubIssueHandler(
+        owner="test",
+        repo="test",
+        token="test-token"
+    )
+    
     # Create a test knowledge microagent
     test_knowledge_content = """---
 name: flarglebargle
@@ -85,6 +93,13 @@ When discussing flarglebargle, remember:
 
 def test_resolver_uses_knowledge_microagents_with_comments():
     """Test that resolver checks triggers in comments and review threads."""
+    # Create a test resolver
+    resolver = GithubIssueHandler(
+        owner="test",
+        repo="test",
+        token="test-token"
+    )
+    
     test_knowledge_content = """---
 name: performance
 type: knowledge
