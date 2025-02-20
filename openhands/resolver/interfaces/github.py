@@ -306,11 +306,14 @@ class GithubIssueHandler(IssueHandlerInterface):
         content = ' '.join(content_parts)
 
         # Add knowledge from microagents that have matching triggers
-        from openhands.microagent.registry import knowledge_agents
+        from openhands.agenthub.micro.registry import all_microagents
 
-        for agent in knowledge_agents.values():
-            if agent.match_trigger(content):
-                contexts.append(agent.content)
+        for agent in all_microagents.values():
+            if agent.get('type') == 'knowledge' and agent.get('triggers'):
+                for trigger in agent['triggers']:
+                    if trigger.lower() in content.lower():
+                        contexts.append(agent['prompt'])
+                        break
 
         return contexts
 
