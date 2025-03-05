@@ -129,7 +129,7 @@ class TaskMicroAgent(BaseMicroAgent):
 def load_microagents_from_dir(
     microagent_dir: Union[str, Path],
 ) -> tuple[
-    dict[str, RepoMicroAgent], dict[str, KnowledgeMicroAgent], dict[str, TaskMicroAgent]
+    dict[str, RepoMicroAgent], dict[str, KnowledgeMicroAgent], dict[str, TaskMicroAgent], list[str]
 ]:
     """Load all microagents from the given directory.
 
@@ -139,7 +139,7 @@ def load_microagents_from_dir(
         microagent_dir: Path to the microagents directory (e.g. .openhands/microagents)
 
     Returns:
-        Tuple of (repo_agents, knowledge_agents, task_agents) dictionaries
+        Tuple of (repo_agents, knowledge_agents, task_agents, errors) where errors is a list of error messages
     """
     if isinstance(microagent_dir, str):
         microagent_dir = Path(microagent_dir)
@@ -147,6 +147,7 @@ def load_microagents_from_dir(
     repo_agents = {}
     knowledge_agents = {}
     task_agents = {}
+    errors = []
 
     # Load all agents from .openhands/microagents directory
     logger.debug(f'Loading agents from {microagent_dir}')
@@ -166,6 +167,8 @@ def load_microagents_from_dir(
                     task_agents[agent.name] = agent
                 logger.debug(f'Loaded agent {agent.name} from {file}')
             except Exception as e:
-                raise ValueError(f'Error loading agent from {file}: {e}')
+                error_msg = f'Error loading agent from {file}: {e}'
+                logger.error(error_msg)
+                errors.append(error_msg)
 
-    return repo_agents, knowledge_agents, task_agents
+    return repo_agents, knowledge_agents, task_agents, errors
