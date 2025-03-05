@@ -263,9 +263,25 @@ class AgentSession:
 
         if agent.prompt_manager:
             agent.prompt_manager.set_runtime_info(self.runtime)
-            microagents: list[BaseMicroAgent] = await call_sync_from_async(
+            microagents_result = await call_sync_from_async(
                 self.runtime.get_microagents_from_selected_repo, selected_repository
             )
+            
+            # Handle the new return type (microagents, errors)
+            if isinstance(microagents_result, tuple) and len(microagents_result) == 2:
+                microagents, errors = microagents_result
+                # Surface any microagent validation errors to the UI
+                if errors:
+                    error_message = "Microagent validation errors detected:\n" + "\n".join(errors)
+                    logger.error(error_message)
+                    if self._status_callback:
+                        self._status_callback(
+                            'error', 'STATUS$MICROAGENT_VALIDATION_ERROR', error_message
+                        )
+            else:
+                # Handle backward compatibility with older versions
+                microagents = microagents_result
+                
             agent.prompt_manager.load_microagents(microagents)
             if selected_repository and repo_directory:
                 agent.prompt_manager.set_repository_info(

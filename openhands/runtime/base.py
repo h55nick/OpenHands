@@ -301,14 +301,18 @@ class Runtime(FileEditRuntimeMixin):
 
     def get_microagents_from_selected_repo(
         self, selected_repository: str | None
-    ) -> list[BaseMicroAgent]:
+    ) -> tuple[list[BaseMicroAgent], list[str]]:
         """Load microagents from the selected repository.
         If selected_repository is None, load microagents from the current workspace.
 
         This is the main entry point for loading microagents.
+
+        Returns:
+            A tuple of (loaded_microagents, errors) where errors is a list of error messages
         """
 
         loaded_microagents: list[BaseMicroAgent] = []
+        errors: list[str] = []
         workspace_root = Path(self.config.workspace_mount_path_in_sandbox)
         microagents_dir = workspace_root / '.openhands' / 'microagents'
         repo_root = None
@@ -337,11 +341,16 @@ class Runtime(FileEditRuntimeMixin):
 
         if isinstance(obs, FileReadObservation):
             self.log('info', 'openhands_instructions microagent loaded.')
-            loaded_microagents.append(
-                BaseMicroAgent.load(
-                    path='.openhands_instructions', file_content=obs.content
+            try:
+                loaded_microagents.append(
+                    BaseMicroAgent.load(
+                        path='.openhands_instructions', file_content=obs.content
+                    )
                 )
-            )
+            except Exception as e:
+                error_msg = f'Error loading agent from .openhands_instructions: {e}'
+                self.log('error', error_msg)
+                errors.append(error_msg)
 
         # Load microagents from directory
         files = self.list_files(str(microagents_dir))
@@ -365,19 +374,23 @@ class Runtime(FileEditRuntimeMixin):
             # Clean up the temporary zip file
             zip_path.unlink()
             # Load all microagents using the existing function
-            repo_agents, knowledge_agents, task_agents = load_microagents_from_dir(
+            repo_agents, knowledge_agents, task_agents, loading_errors = load_microagents_from_dir(
                 microagent_folder
             )
             self.log(
                 'info',
                 f'Loaded {len(repo_agents)} repo agents, {len(knowledge_agents)} knowledge agents, and {len(task_agents)} task agents',
             )
+            if loading_errors:
+                self.log('error', f'Encountered {len(loading_errors)} errors while loading microagents')
+                errors.extend(loading_errors)
+            
             loaded_microagents.extend(repo_agents.values())
             loaded_microagents.extend(knowledge_agents.values())
             loaded_microagents.extend(task_agents.values())
             shutil.rmtree(microagent_folder)
 
-        return loaded_microagents
+        return loaded_microagents, errors
 
     def run_action(self, action: Action) -> Observation:
         """Run an action and return the resulting observation.
